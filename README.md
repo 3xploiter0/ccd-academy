@@ -623,7 +623,7 @@ Check: (1) offsets, (2) bad characters, (3) ASLR enabled? Try debugging with GDB
 Clone this repo, suggest improvements, or submit write-ups via PR!
 
 ```bash
-git clone https://github.com/your-org/dit-cyber-club
+git clone https://github.com/3xploiter0/ccd-academy
 ```
 
 ---
