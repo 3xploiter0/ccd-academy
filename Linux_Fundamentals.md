@@ -4,14 +4,15 @@
 
 1. [What is Linux?](#1-what-is-linux)
 2. [The Terminal & Shell](#2-the-terminal--shell)
-3. [File System Navigation](#3-file-system-navigation)
-4. [File Operations](#4-file-operations)
-5. [Permissions & Ownership](#5-permissions--ownership)
-6. [Users & Groups](#6-users--groups)
-7. [Processes & Services](#7-processes--services)
-8. [Networking Basics](#8-networking-basics)
-9. [Text Processing Power Tools](#9-text-processing-power-tools)
-10. [Hands-On Challenges](#10-hands-on-challenges)
+3. [Connecting to the VPS](#3-connecting-to-the-vps)
+4. [File System Navigation](#4-file-system-navigation)
+5. [File Operations](#5-file-operations)
+6. [Permissions & Ownership](#6-permissions--ownership)
+7. [Users & Groups](#7-users--groups)
+8. [Processes & Services](#8-processes--services)
+9. [Networking Basics](#9-networking-basics)
+10. [Text Processing Power Tools](#10-text-processing-power-tools)
+11. [Hands-On Challenges](#11-hands-on-challenges)
 
 ---
 
@@ -57,6 +58,22 @@ A **shell** is a program that interprets commands. The most common is **Bash** (
 - **Kali/Ubuntu:** Right-click desktop → "Open Terminal" or `Ctrl+Alt+T`
 - **macOS:** Cmd+Space → type "Terminal"
 - **SSH (remote):** `ssh user@ip_address`
+
+### 🔗 Live Server for This Workshop
+
+We have a **real VPS server** set up for today's session. Every challenge in section 11 is pre-loaded on this server.
+
+```bash
+ssh cyberclub@38.247.148.233
+Password: CyberClub2026!
+```
+
+Once connected, you're in! Start with:
+```bash
+ls -la ~/linux_challenges/
+```
+
+> ⚠️ **Warning:** This server has other services running (web backend, Docker containers). Your account is restricted — you can only use specific commands and can't leave your home directory.
 
 ### Your First Commands
 
@@ -521,13 +538,22 @@ command | tee output.txt
 
 ---
 
-## 10. Hands-On Challenges
+## 11. Hands-On Challenges (Live on VPS)
 
-These challenges are designed to be run **live during the workshop**. Each builds on the previous one.
+These challenges are **pre-loaded** on the VPS. Connect first:
+
+```bash
+ssh cyberclub@38.247.148.233
+Password: CyberClub2026!
+```
+
+All challenges are in `~/linux_challenges/`.
+
+---
 
 ### Challenge 1: Linux Orientation
 
-**Goal:** Get comfortable with the terminal and navigation.
+**Goal:** Get comfortable with the terminal and navigation on the live server.
 
 ```bash
 # Step 1: Find out who you are and where you are
@@ -547,113 +573,67 @@ ls -la
 # Step 4: Check what shell you're using
 echo $SHELL
 
-# 🔥 Flag: What is the absolute path to your home directory?
+# 🔥 What is the absolute path to your home directory?
 ```
 
 ---
 
 ### Challenge 2: File Detective
 
-**Goal:** Use `find`, `grep`, and file operations to locate hidden data.
+**Goal:** Use `find`, `grep`, and file operations to locate hidden data in `~/linux_challenges/challenge1/`.
 
 ```bash
-# Step 1: Create a workspace
-mkdir -p ~/challenge2
-cd ~/challenge2
-
-# Step 2: Create several files with different content
-echo "The password is hidden elsewhere" > note.txt
-echo "FLAG{Linux_File_Ops}" > secret.txt
-echo "This is just a decoy" > readme.txt
-mkdir hidden_folder
-echo "FLAG{Hidden_Directory}" > hidden_folder/flag.txt
-
-# Step 3: Practice finding files
-find ~/challenge2 -name "*.txt"
-grep -r "FLAG" ~/challenge2/
-
-# 🔥 Challenge: Use find and grep to locate all flags
-# Expected flags: FLAG{Linux_File_Ops} and FLAG{Hidden_Directory}
+cd ~/linux_challenges/challenge1
+ls -la
+cat note.txt
+cat secret.txt
+find . -name "*.txt"
+grep -r "ccd" .
 ```
 
-**Solution:**
-```bash
-find ~/challenge2 -type f -name "*.txt" -exec cat {} \;
-# OR
-grep -r "FLAG" ~/challenge2/
-```
+**Flags to find:** `ccd{file_detective}`, `ccd{hidden_directory}`
+
+**Hints:**
+- `ls -la` shows hidden directories
+- `find . -type f -name "*.txt"` finds all text files
+- `grep -r "ccd" .` searches recursively
 
 ---
 
 ### Challenge 3: Permission Puzzle
 
-**Goal:** Understand and manipulate file permissions.
+**Goal:** Understand and manipulate file permissions in `~/linux_challenges/challenge2/`.
 
 ```bash
-# Step 1: Create a script
-cd ~
-echo '#!/bin/bash
-echo "FLAG{Permissions_Master}"' > get_flag.sh
+cd ~/linux_challenges/challenge2
+ls -la
 
-# Step 2: Try to run it
-./get_flag.sh
-# You'll get: Permission denied
+# Step 1: Try to run the script
+bash get_flag.sh
+# Permission denied? Check permissions and fix them
 
-# Step 3: Check permissions
-ls -l get_flag.sh
-# Output: -rw-r--r-- ... (no x)
-
-# Step 4: Make it executable
+# Step 2: Make it executable
 chmod +x get_flag.sh
+bash get_flag.sh
 
-# Step 5: Run it again
-./get_flag.sh
-# Output: FLAG{Permissions_Master}
+# Step 3: There's a root-owned file you can't read...
+cat root_only.txt
+# How do you read it?
 
-# 🔥 Challenge: Create a file that only YOU can read/write/execute
-#              (everyone else should have zero access)
+# Step 4: There's a SUID binary (no ./ needed with rbash)
+secret_reader
 ```
 
-**Solution:**
-```bash
-chmod 700 private_script.sh
-# OR
-chmod u=rwx,g=,o= private_script.sh
-```
+**Flags to find:** `ccd{permissions_master}`, `ccd{root_protected}`, `ccd{suid_exploit}`
+
+**Hints:**
+- `chmod +x` adds execute permission
+- `sudo` is not available — find another way to read root-owned files
+- The `secret_reader` binary has SUID set (`-rwsr-sr-x`) — it runs as root
 
 ---
 
-### Challenge 4: The sudo Game
-
-**Goal:** Understand privilege escalation basics.
-
-```bash
-# Step 1: What can you run with sudo?
-sudo -l
-
-# Step 2: Read a protected file
-sudo cat /etc/shadow
-# Wait — that's the password hashes! Let's use a safer target:
-
-sudo cat /var/log/syslog | head -20
-
-# Step 3: Write to a protected location
-sudo touch /opt/i_was_here
-ls -l /opt/i_was_here
-
-# 🔥 Challenge: Create a file in /root/ (root's home) that says "FLAG{sudo_pwned}"
-```
-
-**Solution:**
-```bash
-echo "FLAG{sudo_pwned}" | sudo tee /root/flag.txt
-# OR
-sudo sh -c 'echo "FLAG{sudo_pwned}" > /root/flag.txt'
-```
-
----
-
-### Challenge 5: Process Hunter
+### Challenge 4: Process Hunter
 
 **Goal:** Monitor and control processes.
 
@@ -663,36 +643,33 @@ sleep 300 &
 
 # Step 2: Find it
 ps aux | grep sleep
+pgrep -a sleep
 
 # Step 3: Kill it
 kill <PID>
-# Verify it's gone
-ps aux | grep sleep
 
-# Step 4: Use top/htop
-top
-# Press 'q' to quit
-
-# 🔥 Challenge: Start a process, find its PID using pgrep, and kill it with SIGKILL
+# Step 4: There's a flag hidden somewhere
+# Use find to locate it
+find / -name "*flag*" 2>/dev/null
+cat /tmp/.hidden/challenge3_flag.txt
 ```
 
-**Solution:**
-```bash
-sleep 999 &
-pgrep -a sleep
-kill -9 <PID>
-```
+**Flag to find:** `ccd{process_hunter}`
+
+**Hints:**
+- `ps aux` shows all processes
+- `pgrep -a <name>` finds PIDs by name
+- `kill -9 <PID>` force kills
 
 ---
 
-### Challenge 6: Network Scout
+### Challenge 5: Network Scout
 
-**Goal:** Basic network reconnaissance.
+**Goal:** Basic network reconnaissance on the VPS.
 
 ```bash
 # Step 1: Find your IP address
 ip a
-# Look for something like: inet 192.168.x.x
 
 # Step 2: Test connectivity
 ping -c 4 8.8.8.8
@@ -700,118 +677,112 @@ ping -c 4 google.com
 
 # Step 3: DNS lookup
 nslookup google.com
-host ctf101.org
 
 # Step 4: Check what ports are listening
 ss -tuln
-netstat -tuln
 
 # Step 5: Make a web request
-curl -I https://example.com
-
-# 🔥 Challenge: Use curl to fetch the flag from a fake server
-# echo "FLAG{Network_Pro}" | nc -l -p 9999 &
-# In another terminal: curl http://localhost:9999
+curl -I http://localhost
+# (There's a web server running on this VPS!)
 ```
 
-**Solution (requires two terminals or backgrounding):**
-```bash
-# Terminal 1 (background):
-echo "FLAG{Network_Pro}" | nc -l -p 9999 &
-
-# Terminal 2:
-curl http://localhost:9999
-```
+**No flag to capture** — this challenge is about exploration.
 
 ---
 
-### Challenge 7: Text Processing Pipeline
+### Challenge 6: Text Processing Pipeline
 
-**Goal:** Combine tools to extract information.
+**Goal:** Combine tools to extract information from `~/linux_challenges/challenge5/data.txt`.
 
 ```bash
-# Step 1: Create a messy data file
-cat > ~/challenge7_data.txt << 'EOF'
-user:john:password123:admin
-user:jane:qwerty:user
-user:admin:supersecret:admin
-user:bob:letmein:user
-user:alice:hunter2:moderator
-EOF
+cd ~/linux_challenges/challenge5
+cat data.txt
 
-# Step 2: Extract all usernames (first column)
-cut -d: -f2 ~/challenge7_data.txt
+# Extract all usernames (second column)
+cut -d: -f2 data.txt
 
-# Step 3: Find admin users
-grep "admin" ~/challenge7_data.txt
+# Find admin users
+grep "admin" data.txt
 
-# Step 4: Count users by role
-cut -d: -f4 ~/challenge7_data.txt | sort | uniq -c
+# Count users by role
+cut -d: -f4 data.txt | sort | uniq -c
 
-# Step 5: Extract admin passwords only
-grep "admin" ~/challenge7_data.txt | cut -d: -f3
-
-# 🔥 Challenge: Find the flag hidden in this output:
-# FLAG{pipeline_master}
+# Extract the flag
+grep "ccd" data.txt
 ```
 
-**Solution:**
-```bash
-grep "admin" ~/challenge7_data.txt | cut -d: -f3
-# Output: password123
-# Output: supersecret
-```
+**Flag to find:** `ccd{pipeline_master}`
 
 ---
 
-### Challenge 8: The Ultimate Challenge — CTF-style
+### Challenge 7: Hidden Flag Hunt
 
-**Goal:** Combine everything you've learned.
-
-You're investigating a compromised Linux server. Find all the flags.
+**Goal:** Find hidden flags in `~/linux_challenges/challenge6/`.
 
 ```bash
-# Create the challenge environment
-cd ~
-mkdir -p ctf_challenge
-cd ctf_challenge
+cd ~/linux_challenges/challenge6
+ls -la
 
-# Hidden in file metadata
-echo "backup config" > config.txt
-echo "FLAG{metadata_leak}" >> config.txt
+# Step 1: Find the hidden dotfile
+cat .hidden_flag
 
-# Hidden in a log file
-echo "[ERROR] 10.0.0.1 - - [09/May/2026]" > access.log
-echo "[INFO] FLAG{log_analysis} - admin logged in" >> access.log
-echo "[ERROR] 10.0.0.2 - - [09/May/2026]" >> access.log
+# Step 2: Navigate the nested directories
+cd a/b/c/d/e/f/g && cat flag.txt
 
-# Hidden in a subdirectory
-mkdir -p .secret
-echo "FLAG{dot_directory}" > .secret/hidden_flag
-
-# Protected file (root-owned simulation)
-echo "FLAG{privilege_escalation}" > protected.txt
-chmod 600 protected.txt
-
-# Hidden in process output
-echo "FLAG{running_process}" > /tmp/flag_process
+# Step 3: Extract the tar archive
+tar -xf archive.tar
+cat flag_archive.txt
 ```
 
-**Tasks:**
+**Flags to find:** `ccd{dotfile_hunter}`, `ccd{nested_discovery}`, `ccd{archive_extractor}`
 
-| # | Task | Command |
-|---|------|---------|
-| 1 | Find all text files in ctf_challenge | `find ~/ctf_challenge -type f -name "*.txt"` |
-| 2 | Find the string "FLAG" in all files | `grep -r "FLAG" ~/ctf_challenge/` |
-| 3 | List ALL files including hidden | `ls -la ~/ctf_challenge/` |
-| 4 | Check the contents of .secret/ | `cat ~/ctf_challenge/.secret/hidden_flag` |
-| 5 | Try to read protected.txt as root | `sudo cat ~/ctf_challenge/protected.txt` |
-| 6 | Find the process flag | `cat /tmp/flag_process` |
-| 7 | Search for IP addresses in access.log | `grep -E "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" ~/ctf_challenge/access.log` |
-
-**Flags found:** `FLAG{metadata_leak}`, `FLAG{log_analysis}`, `FLAG{dot_directory}`, `FLAG{privilege_escalation}`, `FLAG{running_process}`
+**Hints:**
+- `ls -la` shows dotfiles
+- `find . -type f` finds all files recursively
+- `tar -xf archive.tar` extracts tar archives
 
 ---
+
+### Challenge 8: Grep Master
+
+**Goal:** Find a flag buried in a large log file in `~/linux_challenges/challenge7/access.log`.
+
+```bash
+cd ~/linux_challenges/challenge7
+cat access.log | grep "ccd"
+# OR
+grep -n "ccd" access.log
+```
+
+**Flag to find:** `ccd{grep_master}`
+
+---
+
+### Challenge 9: Final Showdown
+
+**Goal:** Combine everything you've learned. Explore `~/linux_challenges/challenge8/` and find the flag.
+
+```bash
+cd ~/linux_challenges/challenge8
+ls -la
+cat victory.txt
+```
+
+**Flag to find:** `ccd{final_showdown}`
+
+---
+
+## Quick Reference — VPS Connection
+
+```bash
+# Connect to the workshop server
+ssh cyberclub@38.247.148.233
+# Password: CyberClub2026!
+
+# Once connected:
+ls ~/linux_challenges/    # see all challenges
+cat ~/linux_challenges/README.txt  # read the instructions
+```
 
 ## Quick Reference Card
 
